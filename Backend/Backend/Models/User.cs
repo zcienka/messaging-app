@@ -11,5 +11,7 @@ namespace Backend.Models
         public override string? UserName { get; set; } = null!;
 
         public string PasswordSalt { get; set; } = null!;
+
+        // public List<string> RoomsIds;
     }
 }

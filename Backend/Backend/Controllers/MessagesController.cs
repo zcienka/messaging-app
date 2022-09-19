@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.CodeAnalysis;
 
 namespace Backend.Controllers
 {
@@ -23,7 +24,7 @@ namespace Backend.Controllers
         // GET: api/Messages
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
+        public async Task<ActionResult<ApiResult<Message>>> GetMessages([FromQuery] string limit, [FromQuery] string offset)
         {
             if (_context.Messages == null)
             {
@@ -31,15 +32,24 @@ namespace Backend.Controllers
             }
 
             var username = User?.FindFirst(ClaimTypes.Name).Value;
-            IEnumerable<Message> messages = new List<Message>();
 
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(username) || !int.TryParse(limit, out int limitInt)
+                                               || !int.TryParse(offset, out int offsetInt))
             {
                 return NotFound();
             }
 
-            messages = _context.Messages.Where(x => x.AuthorUsername == username);
-            return Ok(messages);
+            IQueryable<Message> messages = _context.Messages.AsNoTracking().Where(x => x.AuthorUsername == username);
+
+            var url = new Uri($"{Request.Scheme}://{Request.Host}{Request.Path}");
+
+            return await ApiResult<Message>.CreateAsync(
+                messages,
+                offsetInt,
+                limitInt,
+                url.AbsoluteUri
+            );
+            // return Ok(messages.ToListAsync());
         }
 
         // GET: api/Messages/5
@@ -57,7 +67,7 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
-                
+
             return message;
         }
 
