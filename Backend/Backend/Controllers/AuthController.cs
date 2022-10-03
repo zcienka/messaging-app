@@ -1,11 +1,11 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using Backend.Models;
 using Backend.Requests;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -68,10 +68,10 @@ namespace Backend.Controllers
 
                 return ValidationProblem(modelStateDictionary);
             }
-            
+
             if (UserNameExists(request.UserName))
             {
-                return StatusCode(409);
+                return StatusCode(409, "User with that username already exist.");
             }
 
             var salt = GenerateSaltNewInstance(32);
@@ -88,7 +88,6 @@ namespace Backend.Controllers
         public async Task<IActionResult> Login(LoginRegisterRequest request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(p => p.UserName == request.UserName);
-
             if (user == null)
             {
                 return Unauthorized(new LoginResult()
@@ -96,6 +95,7 @@ namespace Backend.Controllers
                     Success = false
                 });
             }
+
 
             var saltedByte = Convert.FromBase64String(user.PasswordSalt);
             var passwordSubmitted = PasswordCreator(request.Password, saltedByte);

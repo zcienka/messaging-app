@@ -4,6 +4,7 @@ using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Backend.Requests;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.CodeAnalysis;
 
@@ -14,42 +15,10 @@ namespace Backend.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        // private IHubContext<HealthCheckHub> _hub;
 
         public MessagesController(ApplicationDbContext context)
         {
             _context = context;
-        }
-
-        // GET: api/Messages
-        [HttpGet]
-        [Authorize]
-        public async Task<ActionResult<ApiResult<Message>>> GetMessages([FromQuery] string limit, [FromQuery] string offset)
-        {
-            if (_context.Messages == null)
-            {
-                return NotFound();
-            }
-
-            var username = User?.FindFirst(ClaimTypes.Name).Value;
-
-            if (string.IsNullOrEmpty(username) || !int.TryParse(limit, out int limitInt)
-                                               || !int.TryParse(offset, out int offsetInt))
-            {
-                return NotFound();
-            }
-
-            IQueryable<Message> messages = _context.Messages.AsNoTracking().Where(x => x.AuthorUsername == username);
-
-            var url = new Uri($"{Request.Scheme}://{Request.Host}{Request.Path}");
-
-            return await ApiResult<Message>.CreateAsync(
-                messages,
-                offsetInt,
-                limitInt,
-                url.AbsoluteUri
-            );
-            // return Ok(messages.ToListAsync());
         }
 
         // GET: api/Messages/5
@@ -72,7 +41,6 @@ namespace Backend.Controllers
         }
 
         // PUT: api/Messages/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         [Authorize]
         public async Task<IActionResult> PutMessage(string id, Message message)
@@ -109,23 +77,34 @@ namespace Backend.Controllers
         }
 
         // POST: api/Messages
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> PostMessage(Message message)
+        public async Task<IActionResult> PostMessage(MessageRequest messageRequest)
         {
-            if (!UserNameExists(message.AuthorUsername))
+            var username = User?.FindFirst("username").Value;
+
+            var room = await _context.Rooms.FindAsync(messageRequest.RoomId);
+
+            if (room == null)
             {
-                return StatusCode(409, "Author username doesn't exist.");
+                return NotFound("Room doesn't exist.");
             }
 
-            if (!UserNameExists(message.ReceiverUsername))
+            if (!room.Usernames.Contains(username))
             {
-                return StatusCode(409, "Receiver username doesn't exist.");
+                return Forbid($"User '{username}' doesn't have an access to a given room.");
             }
+
+            Message message = new Message
+            {
+                RoomId = messageRequest.RoomId,
+                Text = messageRequest.Text,
+                AuthorUsername = username
+            };
 
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetMessage), new { id = message.Id }, message);
         }
 

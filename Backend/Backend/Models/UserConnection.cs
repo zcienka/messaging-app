@@ -1,8 +1,8 @@
 ﻿namespace Backend.Models
 {
-    public class ChatRequest
+    public class UserConnection
     {
-        public string User1 { get; set; }
-        public string User2 { get; set; }
+        public string Username { get; set; }
+        public string RoomId { get; set; }
     }
 }

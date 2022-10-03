@@ -6,14 +6,14 @@ namespace Backend.Models
     public class ApiResult<T>
     {
         public int Count { get; private set; }
-        public string Next { get; private set; }
-        public string Previous { get; private set; }
+        public string? Next { get; private set; } = null;
+        public string? Previous { get; private set; } = null;
         public List<T> Results { get; private set; }
 
         private ApiResult(
             int count,
-            string next,
-            string previous,
+            string? next,
+            string? previous,
             List<T> results)
         {
             Count = count;
@@ -28,13 +28,13 @@ namespace Backend.Models
             int limit,
             string url)
         {
-            var count = await source.CountAsync();
             source = source
                 .Skip(offset)
                 .Take(limit);
+            var count = await source.CountAsync();
 
-            string previous = "null";
-            string next = "null";
+            var previous = (string?)null;
+            var next = (string?)null;
 
             if (offset + limit < count)
             {
@@ -52,6 +52,7 @@ namespace Backend.Models
                     previous = url + $"?limit={limit}&offset={0}";
                 }
             }
+
             var results = await source.ToListAsync();
 
             return new ApiResult<T>(

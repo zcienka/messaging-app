@@ -9,26 +9,27 @@ namespace Backend.Models
     public class JwtHandler
     {
         private readonly IConfiguration _configuration;
-        private readonly UserManager<User> _userManager;
 
-        public JwtHandler(
-            IConfiguration configuration,
-            UserManager<User> userManager
-        )
+        public JwtHandler(IConfiguration configuration)
         {
             _configuration = configuration;
-            _userManager = userManager;
         }
 
         public async Task<JwtSecurityToken> GetTokenAsync(User user)
         {
+            var claims = new[] {
+                new Claim("username", user.UserName),
+                new Claim("userId",
+                    Guid.NewGuid().ToString())
+            };
+
             var jwtOptions = new JwtSecurityToken(
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
-                claims: await GetClaimsAsync(user),
                 expires: DateTime.Now.AddMinutes(Convert.ToDouble(
                     _configuration["JwtSettings:ExpirationTimeInMinutes"])),
-                signingCredentials: GetSigningCredentials());
+                signingCredentials: GetSigningCredentials(),
+                claims: claims);
 
             return jwtOptions;
         }
@@ -40,21 +41,6 @@ namespace Backend.Models
             var secret = new SymmetricSecurityKey(key);
             return new SigningCredentials(secret,
                 SecurityAlgorithms.HmacSha256);
-        }
-
-        private async Task<List<Claim>> GetClaimsAsync(
-            User user)
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.UserName)
-            };
-            foreach (var role in await _userManager.GetRolesAsync(user))
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            return claims;
         }
     }
 }

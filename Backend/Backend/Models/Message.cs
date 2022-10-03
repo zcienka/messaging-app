@@ -7,7 +7,7 @@ namespace Backend.Models
     {
         public string Id { get; set; } = Guid.NewGuid().ToString("N");
         [Required] public string? Text { get; set; }
+        [Required] public string RoomId { get; set; }
         [Required] public string AuthorUsername { get; set; }
-        [Required] public string ReceiverUsername { get; set; }
     }
 }

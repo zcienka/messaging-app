@@ -42,8 +42,6 @@ namespace Backend.Tests
             {
                 Id = messageId,
                 Text = "Lorem ipsum",
-                AuthorUsername = "User2",
-                ReceiverUsername = "User1"
 
             });
             context.SaveChanges();
