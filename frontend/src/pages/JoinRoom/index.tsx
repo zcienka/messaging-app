@@ -23,8 +23,8 @@ const JoinRoom = () => {
     return (
         <div>
             <button className={"confirm-button"} onClick={(e) => createChatRoom(e)}>Join room</button>
-            <p>Messages:</p>
-            {createRoomData !== undefined ? <Messages id={"a89b7cb2b51d4adb9beea6cfd6d24676"}/> : null}
+            {/*<p>Messages:</p>*/}
+            {/*{createRoomData !== undefined ? <Messages id={"a89b7cb2b51d4adb9beea6cfd6d24676"}/> : null}*/}
         </div>
     )
 }

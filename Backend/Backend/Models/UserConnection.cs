@@ -2,7 +2,7 @@
 {
     public class UserConnection
     {
-        public string Username { get; set; }
-        public string RoomId { get; set; }
+        public string User { get; set; } = string.Empty;
+        public string Room { get; set; } = string.Empty;
     }
 }
