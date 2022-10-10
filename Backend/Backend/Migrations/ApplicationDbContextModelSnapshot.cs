@@ -32,6 +32,9 @@ namespace Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("RoomId")
                         .IsRequired()
                         .HasColumnType("text");

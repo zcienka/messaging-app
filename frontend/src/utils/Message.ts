@@ -3,6 +3,7 @@ export interface Message {
     text: string,
     roomId: string,
     authorUsername: string,
+    created: Date,
 }
 
 export interface MessageRequest {

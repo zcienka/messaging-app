@@ -58,7 +58,8 @@ namespace Backend.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     Text = table.Column<string>(type: "text", nullable: false),
                     RoomId = table.Column<string>(type: "text", nullable: false),
-                    AuthorUsername = table.Column<string>(type: "text", nullable: false)
+                    AuthorUsername = table.Column<string>(type: "text", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

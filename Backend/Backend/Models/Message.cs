@@ -9,5 +9,6 @@ namespace Backend.Models
         [Required] public string? Text { get; set; }
         [Required] public string RoomId { get; set; }
         [Required] public string AuthorUsername { get; set; }
+        public DateTime Created { get; set; } = DateTime.UtcNow;
     }
-}
+}   

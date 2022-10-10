@@ -11,27 +11,6 @@ interface IProps {
 const Messages = () => {
     const [jwtToken, setJwtToken] = useState<JwtToken>(JSON.parse(localStorage.getItem("user") || "{}"))
     const [messages, setMessages] = useState<any>(null)
-    const params = useParams()
-
-    const {
-        data: getRoomData,
-        isFetching: isGetRoomFetching,
-        isSuccess: isGetRoomSuccess
-    } = useGetRoomQuery({roomId: params.id, token: jwtToken.token})
-
-    useEffect(() => {
-
-        if (isGetRoomSuccess) {
-            const mappedMessages = getRoomData.messages.results.map((message: Message) => {
-                return <div key={message.id}>
-                    <div>{message.text}</div>
-                    <div>username: {message.authorUsername}</div>
-                </div>
-            })
-
-            setMessages(mappedMessages)
-        }
-    }, [getRoomData, isGetRoomSuccess])
 
     return (
         <>

@@ -52,23 +52,8 @@ namespace Backend.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(LoginRegisterRequest request,
-            [FromServices] IValidator<LoginRegisterRequest> validator)
+        public async Task<ActionResult<User>> Register(LoginRegisterRequest request)
         {
-            ValidationResult validationResult = validator.Validate(request);
-
-            if (!validationResult.IsValid)
-            {
-                var modelStateDictionary = new ModelStateDictionary();
-                foreach (ValidationFailure failure in validationResult.Errors)
-                {
-                    modelStateDictionary.AddModelError(failure.PropertyName,
-                        failure.ErrorMessage);
-                }
-
-                return ValidationProblem(modelStateDictionary);
-            }
-
             if (UserNameExists(request.UserName))
             {
                 return StatusCode(409, "User with that username already exist.");

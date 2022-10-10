@@ -4,6 +4,7 @@ using Backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Backend.Responses;
 using System.Reflection.Metadata;
+using System.Collections.Generic;
 
 namespace Backend.Controllers
 {
@@ -66,7 +67,9 @@ namespace Backend.Controllers
                 return Forbid();
             }
 
-            IQueryable<Message> messages = _context.Messages.AsNoTracking()
+            var reversedMessages = _context.Messages.OrderByDescending(o => o.Created);
+
+            IQueryable<Message> messages = reversedMessages.AsNoTracking()
                 .Where(r => r.RoomId.Equals(id));
 
             var url = new Uri($"{Request.Scheme}://{Request.Host}{Request.Path}");
@@ -77,6 +80,7 @@ namespace Backend.Controllers
                 limitInt,
                 url.AbsoluteUri
             );
+
 
             RoomResponse roomResponse = new RoomResponse()
             {

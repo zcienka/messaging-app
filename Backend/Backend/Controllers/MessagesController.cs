@@ -23,6 +23,7 @@ namespace Backend.Controllers
 
         // GET: api/Messages/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<Message>> GetMessage(string id)
         {
             if (_context.Messages == null)
