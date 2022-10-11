@@ -3,13 +3,13 @@ export interface Message {
     text: string,
     roomId: string,
     authorUsername: string,
-    created: Date,
+    created: string,
 }
 
 export interface MessageRequest {
     text: string,
     roomId: string,
-    authorUsername: string,
+    authorUsername: string | undefined,
 }
 
 export default Message

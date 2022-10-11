@@ -1,22 +1,28 @@
-import React, {useState, useRef, useEffect} from "react"
-import {HubConnection} from "@microsoft/signalr"
-import Messages from "../Messages"
+import React, {useState, useEffect, useCallback, useRef} from "react"
+import {HubConnection, LogLevel} from "@microsoft/signalr"
 import {HubConnectionBuilder, HttpTransportType} from "@microsoft/signalr"
 import {Message, MessageRequest} from "../../utils/Message"
-import {JwtToken} from "../../utils/JwtToken"
+import {DecodedToken, JwtToken} from "../../utils/JwtToken"
 import {useGetRoomQuery} from "../../services/roomApi"
 import {useParams} from "react-router-dom"
+import jwtDecode from "jwt-decode"
+import {Link, useNavigate} from "react-router-dom"
+import moment from "moment"
 
 const Chat = () => {
     const [messageRequest, setMessageRequest] = useState<MessageRequest>()
     const [messages, setMessages] = useState<any[]>([])
     const [users, setUsers] = useState<string[]>()
+    const [user, setUser] = useState<string>()
     const [connection, setConnection] = useState<HubConnection | null>(null)
     const [roomId, setRoomId] = useState<string | undefined>(undefined)
-    const latestChat = useRef<any>(null)
     const [jwtToken, setJwtToken] = useState<JwtToken>(JSON.parse(localStorage.getItem("user") || "{}"))
-    const params = useParams()
+    const [url, setUrl] = useState<string | undefined>(undefined)
 
+    const [hasMore, setHasMore] = useState(false)
+
+    const params = useParams()
+    const navigate = useNavigate()
 
     useEffect(() => {
         setRoomId(params.id)
@@ -26,40 +32,78 @@ const Chat = () => {
         data: getRoomData,
         isFetching: isGetRoomFetching,
         isSuccess: isGetRoomSuccess
-    } = useGetRoomQuery({roomId: roomId, token: jwtToken.token})
+    } = useGetRoomQuery(
+        {
+            roomId: params.id,
+            token: jwtToken.token,
+            url: url === undefined ? `/room/${params.id}` : url
+        })
+
+    useEffect(() => {
+        if (isGetRoomSuccess && localStorage.getItem("user") !== null && jwtToken.token !== null) {
+            const accessToken: DecodedToken = jwtDecode(jwtToken.token)
+            setUser(accessToken.username)
+        }
+    }, [navigate, isGetRoomSuccess, jwtToken.token])
 
     useEffect(() => {
         if (isGetRoomSuccess) {
-            setMessages(getRoomData.messages.results)
+            setMessages((chatMessages: any) => [...chatMessages, ...getRoomData.messages.results] )
+            setMessages((chatMessages: any) => Array.from(new Map(chatMessages.map((x: any) => [x['id'], x])).values()))
         }
     }, [getRoomData, isGetRoomSuccess])
 
+    const lastMessageRef = useCallback((node: any) => {
+        if (getRoomData.messages.next) {
+            setHasMore(true)
+        } else {
+            setHasMore(false)
+        }
 
-    const joinRoom = async (user: string, room: string) => {
+        if (observer.current) {
+            observer.current.disconnect()
+        }
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setUrl(getRoomData.messages.next)
+            }
+            else {
+                setUrl(undefined)
+            }
+        })
+        if (node) {
+            observer.current.observe(node)
+        }
+    }, [getRoomData?.messages.next, hasMore])
+    const observer = useRef<IntersectionObserver | null>(null)
+
+    const joinRoom = async () => {
         try {
             const connection = new HubConnectionBuilder()
                 .withUrl("https://localhost:50133/chat", {
                     skipNegotiation: true,
-                    transport: HttpTransportType.WebSockets
+                    transport: HttpTransportType.WebSockets,
                 })
+                .configureLogging(LogLevel.Information)
                 .build()
 
             connection.on("ReceiveMessage", (message) => {
-                setMessages((chatMessages: any) => [...chatMessages, message])
+                setMessages((chatMessages: any) => [message, ...chatMessages])
             })
 
             connection.on("UsersInRoom", (users) => {
                 setUsers(users)
             })
 
-            connection.onclose(e => {
+            connection.onclose(() => {
                 setConnection(null)
                 setUsers([])
             })
 
             await connection.start()
 
-            await connection.invoke("JoinRoom", {user: "user", room: "a89b7cb2b51d4adb9beea6cfd6d24676"})
+            await connection.invoke("JoinRoom", {user: user, room: roomId})
+
             setConnection(connection)
         } catch (e) {
             console.log(e)
@@ -78,12 +122,40 @@ const Chat = () => {
         }
     }
 
-    const allMessages = messages.map((message: Message) => {
-        return <div key={message.id}>
-            {message.text}{' '}
-            {message.authorUsername}{' '}
-            {message.created.toString()}
-        </div>
+    const allMessages = [...messages].reverse().map((message: Message, index: number) => {
+        if (messages.length === index + 1) {
+            return <div key={message.id}>
+                <span ref={lastMessageRef}>
+                    {message.text}{' '}
+                    {message.authorUsername}{' '}
+                    {moment(message.created).fromNow()}
+                </span>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            </div>
+        } else {
+            return <div key={message.id}>
+                {message.text}{' '}
+                {message.authorUsername}{' '}
+                {moment(message.created).fromNow()}
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            </div>
+        }
     })
 
     if (roomId === undefined || isGetRoomFetching)
@@ -98,16 +170,15 @@ const Chat = () => {
                     setMessageRequest({
                         text: e.target.value,
                         roomId: roomId,
-                        authorUsername: "user"
+                        authorUsername: user
                     })
                 }}/>
                 <p>Server messages:</p>
-                    {allMessages}
+                {allMessages}
                 <br/>
                 <br/>
                 <button className={"confirm-button"} onClick={() => sendMessage()}>Send</button>
-                <Messages/>
-                <button onClick={() => joinRoom("user", roomId)}>join room</button>
+                <button onClick={() => joinRoom()}>join room</button>
                 <br/>
                 <br/>
             </>

@@ -28,35 +28,38 @@ namespace Backend.Models
             int limit,
             string url)
         {
+            var totalCount = await source.CountAsync();
             source = source
                 .Skip(offset)
                 .Take(limit);
-            var count = await source.CountAsync();
 
             var previous = (string?)null;
             var next = (string?)null;
 
-            if (offset + limit < count)
+            if (totalCount != 0 && limit > 0 && offset > 0)
             {
-                next = url + $"?limit={limit}&offset={offset + limit}";
-            }
-
-            if (offset > 0)
-            {
-                if (offset - limit > 0)
+                if (offset + limit < totalCount)
                 {
-                    previous = url + $"?limit={limit}&offset={offset - limit}";
+                    next = url + $"?limit={limit}&offset={offset + limit}";
                 }
-                else
+
+                if (offset > 0)
                 {
-                    previous = url + $"?limit={limit}&offset={0}";
+                    if (offset - limit > 0)
+                    {
+                        previous = url + $"?limit={limit}&offset={offset - limit}";
+                    }
+                    else
+                    {
+                        previous = url + $"?limit={limit}&offset={0}";
+                    }
                 }
             }
 
             var results = await source.ToListAsync();
 
             return new ApiResult<T>(
-                count,
+                totalCount,
                 next,
                 previous,
                 results);

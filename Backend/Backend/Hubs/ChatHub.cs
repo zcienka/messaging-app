@@ -27,7 +27,7 @@ namespace Backend.Hubs
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
 
-            await Clients.All.SendAsync("ReceiveMessage", message);
+            await Clients.Group(requestMessage.RoomId).SendAsync("ReceiveMessage", message);
         }
 
         public async Task JoinRoom(UserConnection userConnection)

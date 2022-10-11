@@ -19,29 +19,30 @@ namespace Backend.Controllers
             _context = context;
         }
 
-        // GET: api/Room
+        // GET: api/Room?limit=10&offset=0
         [HttpGet]
         [Authorize]
         public async Task<ActionResult<ApiResult<Room>>> GetRooms([FromQuery] PagingQuery query)
         {
             var username = User?.FindFirst("username").Value;
-
+        
             if (string.IsNullOrEmpty(username) || !int.TryParse(query.Limit, out int limitInt)
                                                || !int.TryParse(query.Offset, out int offsetInt))
             {
                 return NotFound();
             }
-
+        
             IQueryable<Room> rooms = _context.Rooms.AsNoTracking()
                 .Where(r => r.Usernames.Contains(username));
+        
+            var url = "/room";
 
-            var url = new Uri($"{Request.Scheme}://{Request.Host}{Request.Path}");
 
             return await ApiResult<Room>.CreateAsync(
                 rooms,
                 offsetInt,
                 limitInt,
-                url.AbsoluteUri
+                url
             );
         }
 
@@ -52,8 +53,8 @@ namespace Backend.Controllers
         {
             var username = User?.FindFirst("username").Value;
             var room = await _context.Rooms.FindAsync(id);
-
-
+        
+        
             if (room == null ||
                 string.IsNullOrEmpty(username) ||
                 !int.TryParse(query.Limit, out int limitInt) ||
@@ -61,34 +62,34 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
-
+        
             if (!room.Usernames.Contains(username))
             {
                 return Forbid();
             }
-
+        
             var reversedMessages = _context.Messages.OrderByDescending(o => o.Created);
-
+        
             IQueryable<Message> messages = reversedMessages.AsNoTracking()
                 .Where(r => r.RoomId.Equals(id));
-
-            var url = new Uri($"{Request.Scheme}://{Request.Host}{Request.Path}");
+        
+            var url = $"/room/{id}";
 
             var pagedMessages = await ApiResult<Message>.CreateAsync(
                 messages,
                 offsetInt,
                 limitInt,
-                url.AbsoluteUri
+                url
             );
-
-
+        
+        
             RoomResponse roomResponse = new RoomResponse()
             {
                 Id = id,
                 Usernames = room.Usernames,
                 Messages = pagedMessages
             };
-
+        
             return roomResponse;
         }
 
