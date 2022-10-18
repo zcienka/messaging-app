@@ -20,7 +20,7 @@ export const authApi = createApi({
                 password: string
             }) => {
                 return {
-                    url: "/users/signup",
+                    url: "/register",
                     method: "POST",
                     body,
                 }
