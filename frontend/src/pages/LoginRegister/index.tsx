@@ -97,8 +97,8 @@ const Register = () => {
     const [repeatPassword, setRepeatPassword] = useState<string | null>(null)
     const [checkPasswords, setCheckPasswords] = useState(false)
 
-    const dispatch = useAppDispatch()
     const navigate = useNavigate()
+    const dispatch = useAppDispatch()
 
     const [
         registerUser,
@@ -119,7 +119,7 @@ const Register = () => {
         }
     ] = useLoginUserMutation()
 
-    console.log({registerError})
+    console.log({registerData})
 
     const register = async () => {
         if (username !== null && password !== null && repeatPassword === password) {
@@ -127,25 +127,12 @@ const Register = () => {
         }
     }
 
-    const login = async () => {
-        if (username !== null && password !== null) {
-            await loginUser({username, password})
-        }
-    }
-
     useEffect(() => {
         if (isRegisterSuccess) {
-            login().then()
-        }
-    }, [navigate, login, registerData, isRegisterSuccess])
-
-
-    useEffect(() => {
-        if (isLoginSuccess) {
+            dispatch(setUser(registerData))
             navigate('/', {replace: true})
-            dispatch(setUser(loginData))
         }
-    }, [dispatch, loginData, isLoginSuccess])
+    }, [dispatch, navigate, registerData, isRegisterSuccess])
 
     return (
         <div className={"h-full w-full"}>

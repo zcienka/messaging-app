@@ -52,7 +52,7 @@ namespace Backend.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(LoginRegisterRequest request)
+        public async Task<IActionResult> Register(LoginRegisterRequest request)
         {
             if (UserNameExists(request.UserName))
             {
@@ -66,7 +66,15 @@ namespace Backend.Controllers
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
+
+            var secToken = await _jwtHandler.GetTokenAsync(user);
+            var jwt = new JwtSecurityTokenHandler().WriteToken(secToken);
+
+            return Ok(new LoginResult()
+            {
+                Success = true,
+                Token = jwt,
+            });
         }
 
         [HttpPost("login")]
