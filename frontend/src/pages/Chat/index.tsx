@@ -6,8 +6,8 @@ import {DecodedToken, JwtToken} from "../../utils/JwtToken"
 import {useGetRoomQuery} from "../../services/roomApi"
 import {useParams} from "react-router-dom"
 import jwtDecode from "jwt-decode"
-import {Link, useNavigate} from "react-router-dom"
-import moment from "moment"
+import {useNavigate} from "react-router-dom"
+import MessageStyle from "../../components/MessageStyle"
 
 const Chat = () => {
     const [messageRequest, setMessageRequest] = useState<MessageRequest>()
@@ -19,7 +19,6 @@ const Chat = () => {
     const [jwtToken, setJwtToken] = useState<JwtToken>(JSON.parse(localStorage.getItem("user") || "{}"))
     const [url, setUrl] = useState<string | undefined>(undefined)
 
-    const [hasMore, setHasMore] = useState(false)
 
     const params = useParams()
     const navigate = useNavigate()
@@ -27,6 +26,44 @@ const Chat = () => {
     useEffect(() => {
         setRoomId(params.id)
     }, [params])
+
+    useEffect(() => {
+        if (roomId !== undefined && user !== undefined) {
+            const joinRoom = async () => {
+                try {
+                    const connection = new HubConnectionBuilder()
+                        .withUrl("https://localhost:50133/chat", {
+                            skipNegotiation: true,
+                            transport: HttpTransportType.WebSockets,
+                        })
+                        .configureLogging(LogLevel.Information)
+                        .build()
+
+                    connection.on("ReceiveMessage", (message) => {
+                        setMessages((chatMessages: any) => [message, ...chatMessages])
+                    })
+
+                    connection.on("UsersInRoom", (users) => {
+                        setUsers(users)
+                    })
+
+                    connection.onclose(() => {
+                        setConnection(null)
+                        setUsers([])
+                    })
+
+                    await connection.start()
+
+                    await connection.invoke("JoinRoom", {user: user, room: roomId})
+
+                    setConnection(connection)
+                } catch (e) {
+                    console.log(e)
+                }
+            }
+            joinRoom()
+        }
+    }, [user, roomId])
 
     const {
         data: getRoomData,
@@ -48,67 +85,10 @@ const Chat = () => {
 
     useEffect(() => {
         if (isGetRoomSuccess) {
-            setMessages((chatMessages: any) => [...chatMessages, ...getRoomData.messages.results] )
-            setMessages((chatMessages: any) => Array.from(new Map(chatMessages.map((x: any) => [x['id'], x])).values()))
+            setMessages((oldMessage: any) =>
+                Array.from(new Map([...oldMessage, ...getRoomData.messages.results].map((x: any) => [x['id'], x])).values()))
         }
     }, [getRoomData, isGetRoomSuccess])
-
-    const lastMessageRef = useCallback((node: any) => {
-        if (getRoomData.messages.next) {
-            setHasMore(true)
-        } else {
-            setHasMore(false)
-        }
-
-        if (observer.current) {
-            observer.current.disconnect()
-        }
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                setUrl(getRoomData.messages.next)
-            }
-            else {
-                setUrl(undefined)
-            }
-        })
-        if (node) {
-            observer.current.observe(node)
-        }
-    }, [getRoomData?.messages.next, hasMore])
-    const observer = useRef<IntersectionObserver | null>(null)
-
-    const joinRoom = async () => {
-        try {
-            const connection = new HubConnectionBuilder()
-                .withUrl("https://localhost:50133/chat", {
-                    skipNegotiation: true,
-                    transport: HttpTransportType.WebSockets,
-                })
-                .configureLogging(LogLevel.Information)
-                .build()
-
-            connection.on("ReceiveMessage", (message) => {
-                setMessages((chatMessages: any) => [message, ...chatMessages])
-            })
-
-            connection.on("UsersInRoom", (users) => {
-                setUsers(users)
-            })
-
-            connection.onclose(() => {
-                setConnection(null)
-                setUsers([])
-            })
-
-            await connection.start()
-
-            await connection.invoke("JoinRoom", {user: user, room: roomId})
-
-            setConnection(connection)
-        } catch (e) {
-            console.log(e)
-        }
-    }
 
     const sendMessage = async () => {
         if (connection !== null) {
@@ -122,40 +102,11 @@ const Chat = () => {
         }
     }
 
-    const allMessages = [...messages].reverse().map((message: Message, index: number) => {
-        if (messages.length === index + 1) {
+    const allMessages = [...messages].map((message: Message, index: number) => {
+        if (user !== undefined)
             return <div key={message.id}>
-                <span ref={lastMessageRef}>
-                    {message.text}{' '}
-                    {message.authorUsername}{' '}
-                    {moment(message.created).fromNow()}
-                </span>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
+                <MessageStyle message={message} user={user}/>
             </div>
-        } else {
-            return <div key={message.id}>
-                {message.text}{' '}
-                {message.authorUsername}{' '}
-                {moment(message.created).fromNow()}
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-                <br/>
-            </div>
-        }
     })
 
     if (roomId === undefined || isGetRoomFetching)
@@ -163,24 +114,25 @@ const Chat = () => {
     else {
         return (
             <>
-                <br/>
-                <br/>
-                <p>Message</p>
-                <input onChange={(e) => {
-                    setMessageRequest({
-                        text: e.target.value,
-                        roomId: roomId,
-                        authorUsername: user
-                    })
-                }}/>
-                <p>Server messages:</p>
-                {allMessages}
-                <br/>
-                <br/>
-                <button className={"confirm-button"} onClick={() => sendMessage()}>Send</button>
-                <button onClick={() => joinRoom()}>join room</button>
-                <br/>
-                <br/>
+                <div className={"h-screen flex flex-col mt-10"}>
+                <div className={"border-2 border-blue-400  min-h-screen flex flex-col-reverse overflow-y-auto overflow-x-hidden"}>
+                        {allMessages}
+                </div>
+                </div>
+
+                <div className={"sticky"}>
+
+                    <div className={"flex flex-row"}>
+                        <input className={"w-full"} onChange={(e) => {
+                            setMessageRequest({
+                                text: e.target.value,
+                                roomId: roomId,
+                                authorUsername: user
+                            })
+                        }}/>
+                        <button className={"confirm-button"} onClick={() => sendMessage()}>Send</button>
+                    </div>
+                </div>
             </>
         )
     }

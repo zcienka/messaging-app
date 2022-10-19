@@ -36,7 +36,7 @@ namespace Backend.Models
             var previous = (string?)null;
             var next = (string?)null;
 
-            if (totalCount != 0 && limit > 0 && offset > 0)
+            if (totalCount != 0 && limit > 0 && offset >= 0)
             {
                 if (offset + limit < totalCount)
                 {

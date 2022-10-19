@@ -2,9 +2,11 @@ import React, {useState, useEffect} from "react"
 import {useLoginUserMutation, useRegisterUserMutation} from "../../services/authApi"
 import {useAppDispatch} from "../../app/hooks"
 import {setUser} from "../../features/authSlice"
-import {ReactComponent as YourSvg} from "../../imgs/xd.svg"
+import {ReactComponent as YourSvg} from "../../imgs/errorIcon.svg"
 import {Tooltip} from "flowbite-react"
-import {useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom"
+import {Error} from "../../utils/ErrorMessage"
+
 
 const LoginRegister = () => {
     return (
@@ -18,6 +20,7 @@ const Login = () => {
     const [username, setUsername] = useState<string | null>(null)
     const [password, setPassword] = useState<string | null>(null)
     const dispatch = useAppDispatch()
+    const navigate = useNavigate()
 
     const [
         loginUser,
@@ -25,7 +28,6 @@ const Login = () => {
             data: loginData,
             isSuccess: isLoginSuccess,
             isError: isLoginError,
-            error: loginError,
         }
     ] = useLoginUserMutation()
 
@@ -39,8 +41,9 @@ const Login = () => {
     useEffect(() => {
         if (isLoginSuccess) {
             dispatch(setUser(loginData))
+            navigate('/', {replace: true})
         }
-    }, [dispatch, loginData, isLoginSuccess])
+    }, [navigate, dispatch, loginData, isLoginSuccess])
 
     return (
         <div className={"h-full w-full"}>
@@ -92,6 +95,8 @@ const Login = () => {
 }
 
 const Register = () => {
+    const [error, setError] = useState<Error | null>(null)
+
     const [username, setUsername] = useState<string | null>(null)
     const [password, setPassword] = useState<string | null>(null)
     const [repeatPassword, setRepeatPassword] = useState<string | null>(null)
@@ -110,17 +115,6 @@ const Register = () => {
         }
     ] = useRegisterUserMutation()
 
-    const [
-        loginUser,
-        {
-            data: loginData,
-            isSuccess: isLoginSuccess,
-            isError: isLoginError,
-        }
-    ] = useLoginUserMutation()
-
-    console.log({registerData})
-
     const register = async () => {
         if (username !== null && password !== null && repeatPassword === password) {
             await registerUser({username, password})
@@ -133,6 +127,11 @@ const Register = () => {
             navigate('/', {replace: true})
         }
     }, [dispatch, navigate, registerData, isRegisterSuccess])
+
+    useEffect(() => {
+        // @ts-ignore
+        setError(registerError)
+    }, [registerError])
 
     return (
         <div className={"h-full w-full"}>
@@ -147,7 +146,7 @@ const Register = () => {
 
                     <div className={"flex justify-end items-center relative"}>
                         <input
-                            className={`${!isRegisterError ? "border-slate-200" : 'border-red-600'} w-full mb-2 pr-8`}
+                            className={`${error?.originalStatus === 409 ? 'border-red-600' : "border-slate-200"} w-full mb-2 pr-8`}
                             type="text" id="username" onChange={(e) => {
                             setUsername(() => e.target.value)
                         }}/>
