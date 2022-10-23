@@ -1,5 +1,4 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit"
-import {RootState} from "../app/store"
 import {TokenAuth} from "../utils/token"
 
 const initialState: TokenAuth = {
@@ -35,8 +34,6 @@ export const authSlice = createSlice({
         },
     },
 })
-
-export const selectAuth = (state: RootState) => state.auth
 
 export const {setUser, logout} = authSlice.actions
 

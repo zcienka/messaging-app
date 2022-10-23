@@ -2,17 +2,21 @@ import React, {useState, useEffect} from "react"
 import {useLoginUserMutation, useRegisterUserMutation} from "../../services/authApi"
 import {useAppDispatch} from "../../app/hooks"
 import {setUser} from "../../features/authSlice"
-import {ReactComponent as YourSvg} from "../../imgs/errorIcon.svg"
+import {ReactComponent as ErrorIcon} from "../../imgs/errorIcon.svg"
 import {Tooltip} from "flowbite-react"
 import {useNavigate} from "react-router-dom"
 import {Error} from "../../utils/ErrorMessage"
+import Navbar from "../../components/Navbar";
 
 
 const LoginRegister = () => {
     return (
-        <div className={"flex h-screen w-screen bg-violet-50"}>
-            {window.location.pathname === "/login" ? <Login/> : <Register/>}
-        </div>
+        <>
+            <Navbar/>
+            <div className={"flex h-[calc(100vh_-_4rem)] w-screen bg-violet-50"}>
+                {window.location.pathname === "/login" ? <Login/> : <Register/>}
+            </div>
+        </>
     )
 }
 
@@ -70,7 +74,7 @@ const Login = () => {
                                 trigger="hover"
                                 id="tooltip-top"
                             >
-                                <YourSvg/>
+                                <ErrorIcon/>
                             </Tooltip>
                         </div>
                     </div>
@@ -157,7 +161,7 @@ const Register = () => {
                                 trigger="hover"
                                 id="tooltip-top"
                             >
-                                <YourSvg/>
+                                <ErrorIcon/>
                             </Tooltip>
                         </div>
                     </div>
@@ -185,7 +189,7 @@ const Register = () => {
                                 content="Passwords are not the same"
                                 trigger="hover"
                             >
-                                <YourSvg/>
+                                <ErrorIcon/>
                             </Tooltip>
                         </div>
                     </div>

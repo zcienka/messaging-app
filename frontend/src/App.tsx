@@ -1,7 +1,8 @@
-import React, {useEffect} from "react"
+import React from "react"
 import LoginRegister from "./pages/LoginRegister"
 import {Route, BrowserRouter, Routes} from "react-router-dom"
 import Chat from "./pages/Chat"
+import Navbar from "./components/Navbar"
 
 function App() {
 
