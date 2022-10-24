@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from "react"
+import React, {useState, useEffect, useCallback, useRef, useMemo} from "react"
 import {HubConnection, LogLevel} from "@microsoft/signalr"
 import {HubConnectionBuilder} from "@microsoft/signalr"
 import {Message, MessageRequest} from "../../utils/Message"
@@ -8,7 +8,7 @@ import {useParams} from "react-router-dom"
 import jwtDecode from "jwt-decode"
 import {useNavigate} from "react-router-dom"
 import MessageStyle from "../../components/MessageStyle"
-import Navbar from "../../components/Navbar";
+import Navbar from "../../components/Navbar"
 
 const Chat = () => {
     const [messageRequest, setMessageRequest] = useState<MessageRequest>()
@@ -57,6 +57,7 @@ const Chat = () => {
         }
     }, [user, roomId])
 
+
     const {
         data: getRoomData,
         isFetching: isGetRoomFetching,
@@ -79,12 +80,12 @@ const Chat = () => {
     }, [isGetRoomError, navigate, isGetRoomSuccess, jwtToken.token])
 
     useEffect(() => {
-        if (isGetRoomSuccess) {
-            // setMessages((oldMessage: any) => [...oldMessage, ...getRoomData.messages.results])
+        if (isGetRoomSuccess && !isGetRoomFetching) {
             setMessages((oldMessage: any) =>
                 Array.from(new Map([...oldMessage, ...getRoomData.messages.results].map((x: any) => [x['id'], x])).values()))
         }
-    }, [getRoomData, isGetRoomSuccess])
+    }, [isGetRoomFetching, getRoomData, isGetRoomSuccess])
+
 
     const sendMessage = async () => {
         if (connection !== null) {
@@ -137,21 +138,15 @@ const Chat = () => {
     })
 
 
-    if (roomId === undefined || isGetRoomFetching)
+    if (roomId === undefined )
         return (<>loading...</>)
     else {
         return (
             <>
                 <Navbar/>
                 <div className={"h-[calc(100vh_-_8rem)] flex flex-col px-2"}>
-                    <div className={"flex flex-col overflow-y-auto overflow-x-hidden"}>
+                    <div className={"flex flex-col-reverse overflow-y-auto overflow-x-hidden"}>
                         {allMessages}
-                        {/*{getRoomData.messages.next !== null ?*/}
-                        {/*    <div className={"flex w-full justify-center"}>*/}
-                        {/*        <button className={"w-64"} onClick={() => setUrl(() => getRoomData.messages.next)}>*/}
-                        {/*            Load more messages*/}
-                        {/*        </button>*/}
-                        {/*    </div> : null}*/}
                     </div>
                 </div>
 
