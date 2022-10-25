@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20221010182219_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20221025000434_01_users")]
+    partial class _01_users
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -53,6 +53,9 @@ namespace Backend.Migrations
             modelBuilder.Entity("Backend.Models.Room", b =>
                 {
                     b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastMessage")
                         .HasColumnType("text");
 
                     b.Property<List<string>>("Usernames")

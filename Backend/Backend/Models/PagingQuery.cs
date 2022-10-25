@@ -2,7 +2,7 @@
 {
     public class PagingQuery
     {
-        public string Limit { get; set; } = "40";
+        public string Limit { get; set; } = "20";
         public string Offset { get; set; } = "0";
     }
 }

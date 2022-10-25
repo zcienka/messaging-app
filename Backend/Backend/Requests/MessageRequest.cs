@@ -7,7 +7,6 @@ namespace Backend.Requests
     {
         [Required] public string? AuthorUsername { get; set; }
         [Required] public string? RoomId { get; set; }
-
         [Required] public string? Text { get; set; }
     }
 }

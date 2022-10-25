@@ -34,9 +34,8 @@ namespace Backend.Controllers
         
             IQueryable<Room> rooms = _context.Rooms.AsNoTracking()
                 .Where(r => r.Usernames.Contains(username));
-        
+            
             var url = "/room";
-
 
             return await ApiResult<Room>.CreateAsync(
                 rooms,
@@ -70,7 +69,7 @@ namespace Backend.Controllers
         
             var reversedMessages = _context.Messages.OrderByDescending(o => o.Created);
         
-            IQueryable<Message> messages = reversedMessages.AsNoTracking()
+            IQueryable<Message> messages = reversedMessages
                 .Where(r => r.RoomId.Equals(id));
         
             var url = $"/room/{id}";
@@ -82,12 +81,12 @@ namespace Backend.Controllers
                 url
             );
         
-        
             RoomResponse roomResponse = new RoomResponse()
             {
                 Id = id,
                 Usernames = room.Usernames,
-                Messages = pagedMessages
+                Messages = pagedMessages,
+                LastMessage = room.LastMessage
             };
         
             return roomResponse;
@@ -154,7 +153,7 @@ namespace Backend.Controllers
             };
 
             _context.Rooms.Add(room);
-            await _context.SaveChangesAsync();
+            // await _context.SaveChangesAsync();
 
             try
             {

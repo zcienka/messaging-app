@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Backend.Requests;
+using Backend.Responses;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.CodeAnalysis;
+using System.Security.AccessControl;
 
 namespace Backend.Controllers
 {
@@ -80,11 +82,11 @@ namespace Backend.Controllers
         // POST: api/Messages
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> PostMessage(MessageRequest messageRequest)
+        public async Task<ActionResult<Room>> PostMessage(MessageRequest messageRequest)
         {
             var username = User?.FindFirst("username").Value;
 
-            var room = await _context.Rooms.FindAsync(messageRequest.RoomId);
+            var room = await _context.Rooms.FirstOrDefaultAsync(p => p.Id == messageRequest.RoomId);
 
             if (room == null)
             {
@@ -104,6 +106,8 @@ namespace Backend.Controllers
             };
 
             _context.Messages.Add(message);
+            room.LastMessage = messageRequest.Text;
+
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetMessage), new { id = message.Id }, message);

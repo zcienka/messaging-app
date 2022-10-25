@@ -4,5 +4,5 @@ import Message from "./Message"
 export interface Room {
     id: string,
     usernames: string[],
-    messages: ApiList<Message>
+    lastMessage: string,
 }

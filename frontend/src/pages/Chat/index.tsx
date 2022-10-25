@@ -4,31 +4,32 @@ import {HubConnectionBuilder} from "@microsoft/signalr"
 import {Message, MessageRequest} from "../../utils/Message"
 import {DecodedToken, JwtToken} from "../../utils/JwtToken"
 import {useGetRoomQuery} from "../../services/roomApi"
-import {useParams} from "react-router-dom"
 import jwtDecode from "jwt-decode"
 import {useNavigate} from "react-router-dom"
 import MessageStyle from "../../components/MessageStyle"
-import Navbar from "../../components/Navbar"
 
-const Chat = () => {
+interface Props {
+    chatId: string,
+}
+
+const Chat = (props: Props) => {
     const [messageRequest, setMessageRequest] = useState<MessageRequest>()
-    const [messages, setMessages] = useState<any[]>([])
+    const [messages, setMessages] = useState<Message[]>([])
     const [user, setUser] = useState<string>()
     const [connection, setConnection] = useState<HubConnection | null>(null)
     const [roomId, setRoomId] = useState<string | undefined>(undefined)
-    const [jwtToken, setJwtToken] = useState<JwtToken>(JSON.parse(localStorage.getItem("user") || "{}"))
+    const jwtToken: JwtToken = JSON.parse(localStorage.getItem("user") || "{}")
     const [url, setUrl] = useState<string | undefined>(undefined)
     const [hasMore, setHasMore] = useState(false)
 
-    const params = useParams()
     const navigate = useNavigate()
 
     useEffect(() => {
-        setRoomId(params.id)
-    }, [params])
+        setRoomId(props.chatId)
+    }, [props.chatId])
 
     useEffect(() => {
-        if (roomId !== undefined && user !== undefined) {
+        if (props.chatId !== undefined && user !== undefined) {
             const joinRoom = async () => {
                 try {
                     const connection = new HubConnectionBuilder()
@@ -57,7 +58,6 @@ const Chat = () => {
         }
     }, [user, roomId])
 
-
     const {
         data: getRoomData,
         isFetching: isGetRoomFetching,
@@ -65,9 +65,9 @@ const Chat = () => {
         isError: isGetRoomError,
     } = useGetRoomQuery(
         {
-            roomId: params.id,
+            roomId: props.chatId,
             token: jwtToken.token,
-            url: url === undefined ? `/room/${params.id}` : url
+            url: url === undefined ? `/room/${props.chatId}` : url
         })
 
     useEffect(() => {
@@ -81,11 +81,10 @@ const Chat = () => {
 
     useEffect(() => {
         if (isGetRoomSuccess && !isGetRoomFetching) {
-            setMessages((oldMessage: any) =>
-                Array.from(new Map([...oldMessage, ...getRoomData.messages.results].map((x: any) => [x['id'], x])).values()))
+            setMessages((prevMessage: any) =>
+                Array.from(new Map([...prevMessage, ...getRoomData.messages.results].map((x: any) => [x["id"], x])).values()))
         }
     }, [isGetRoomFetching, getRoomData, isGetRoomSuccess])
-
 
     const sendMessage = async () => {
         if (connection !== null) {
@@ -137,20 +136,18 @@ const Chat = () => {
             }
     })
 
-
-    if (roomId === undefined )
+    if (roomId === undefined)
         return (<>loading...</>)
     else {
         return (
             <>
-                <Navbar/>
-                <div className={"h-[calc(100vh_-_8rem)] flex flex-col px-2"}>
+                <div className={"h-full flex flex-col px-2"}>
                     <div className={"flex flex-col-reverse overflow-y-auto overflow-x-hidden"}>
                         {allMessages}
                     </div>
                 </div>
 
-                <div className={"flex h-16 w-full border-t-2 border-gray-200"}>
+                <div className={"flex h-16 w-full border-t-2 border-gray-100"}>
                     <div className={"flex flex-row w-full h-full items-center px-2"}>
                         <input className={"w-full mr-2"} onChange={(e) => {
                             setMessageRequest({

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Backend.Migrations
 {
-    public partial class InitialDatabase : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -71,7 +71,8 @@ namespace Backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    Usernames = table.Column<List<string>>(type: "text[]", nullable: false)
+                    Usernames = table.Column<List<string>>(type: "text[]", nullable: false),
+                    LastMessage = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
