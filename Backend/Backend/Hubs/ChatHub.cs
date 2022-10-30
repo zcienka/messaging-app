@@ -1,6 +1,7 @@
 ﻿using Backend.Models;
 using Backend.Requests;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Hubs
 {
@@ -23,8 +24,11 @@ namespace Backend.Hubs
                 RoomId = requestMessage.RoomId,
                 AuthorUsername = requestMessage.AuthorUsername
             };
+            var room = await _context.Rooms.FirstOrDefaultAsync(p => p.Id == requestMessage.RoomId);
 
             _context.Messages.Add(message);
+            room.LastMessage = requestMessage.Text;
+
             await _context.SaveChangesAsync();
 
             await Clients.Group(requestMessage.RoomId).SendAsync("ReceiveMessage", message);

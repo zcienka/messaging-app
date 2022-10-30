@@ -22,8 +22,7 @@ export const roomApi = createApi({
         }),
         getUserRooms: builder.query({
             query: (body) => ({
-                // url: body.url,
-                url: "/room",
+                url: body.url,
                 method: "GET",
                 headers: {authorization: `Bearer ${body.token}`},
             }),

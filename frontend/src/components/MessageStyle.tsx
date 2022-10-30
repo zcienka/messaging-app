@@ -19,7 +19,7 @@ const MessageStyle = (props: Props) => {
         </div>
     else
         return <div className={"flex"}>
-            <div className={"bg-gray-300 p-6 max-w-sm min-w-16 single-message mb-2"}>
+            <div className={"bg-gray-300 p-6 max-w-sm min-w-16 single-message mb-2 "}>
                 {props.message.text}{' '}
                 {props.message.authorUsername}{' '}
                 {moment(props.message.created).fromNow()}

@@ -21,8 +21,11 @@ const Chat = (props: Props) => {
     const jwtToken: JwtToken = JSON.parse(localStorage.getItem("user") || "{}")
     const [url, setUrl] = useState<string | undefined>(undefined)
     const [hasMore, setHasMore] = useState(false)
+    const [allMessages, setAllMessages] = useState<any[]>([]);
 
+    const inputRef = useRef<HTMLInputElement>(null)
     const navigate = useNavigate()
+
 
     useEffect(() => {
         setRoomId(props.chatId)
@@ -38,7 +41,7 @@ const Chat = (props: Props) => {
                         .build()
 
                     connection.on("ReceiveMessage", (message) => {
-                        setMessages((chatMessages: any) => [message, ...chatMessages])
+                        setMessages((chatMessages: any) => Array.from(new Map([message, ...chatMessages].map((x: any) => [x["id"], x])).values()))
                     })
 
                     connection.onclose(() => {
@@ -56,19 +59,26 @@ const Chat = (props: Props) => {
             }
             joinRoom()
         }
-    }, [user, roomId])
+    }, [props.chatId, user, roomId])
 
     const {
         data: getRoomData,
         isFetching: isGetRoomFetching,
         isSuccess: isGetRoomSuccess,
         isError: isGetRoomError,
+        refetch
     } = useGetRoomQuery(
         {
             roomId: props.chatId,
             token: jwtToken.token,
-            url: url === undefined ? `/room/${props.chatId}` : url
+            url: url === undefined ? `/room/${props.chatId}` : url,
         })
+
+    useEffect(() => {
+        refetch()
+        setAllMessages(() => [])
+        setMessages(() => [])
+    }, [refetch, props.chatId])
 
     useEffect(() => {
         if (isGetRoomSuccess && localStorage.getItem("user") !== null && jwtToken.token !== null) {
@@ -84,9 +94,12 @@ const Chat = (props: Props) => {
             setMessages((prevMessage: any) =>
                 Array.from(new Map([...prevMessage, ...getRoomData.messages.results].map((x: any) => [x["id"], x])).values()))
         }
-    }, [isGetRoomFetching, getRoomData, isGetRoomSuccess])
+    }, [isGetRoomFetching, getRoomData, isGetRoomSuccess, props.chatId])
 
     const sendMessage = async () => {
+        if (inputRef.current !== null) {
+            inputRef.current.value = ''
+        }
         if (connection !== null) {
             try {
                 await connection.send("SendMessage", messageRequest)
@@ -121,20 +134,25 @@ const Chat = (props: Props) => {
         }
     }, [getRoomData?.messages.next, hasMore])
 
-    const allMessages = [...messages].map((message: Message, index: number) => {
-        if (user !== undefined)
-            if (messages.length === index + 1) {
-                return <div key={message.id}>
+
+    useEffect(() => {
+        if (user !== undefined) {
+            setAllMessages([...messages].map((message: Message, index: number) => {
+                if (messages.length === index + 1) {
+                    return <div key={message.id}>
                         <span ref={lastMessageRef}>
                             <MessageStyle message={message} user={user}/>
                         </span>
-                </div>
-            } else {
-                return <div key={message.id}>
-                    <MessageStyle message={message} user={user}/>
-                </div>
-            }
-    })
+                    </div>
+                } else {
+                    return <div key={message.id}>
+                        <MessageStyle message={message} user={user}/>
+                    </div>
+                }
+            }))
+        }
+    }, [lastMessageRef, messages, user])
+
 
     if (roomId === undefined)
         return (<>loading...</>)
@@ -149,14 +167,16 @@ const Chat = (props: Props) => {
 
                 <div className={"flex h-16 w-full border-t-2 border-gray-100"}>
                     <div className={"flex flex-row w-full h-full items-center px-2"}>
-                        <input className={"w-full mr-2"} onChange={(e) => {
+                        <input className={"w-full mr-2"} ref={inputRef} onChange={(e) => {
                             setMessageRequest({
                                 text: e.target.value,
                                 roomId: roomId,
                                 authorUsername: user
                             })
                         }}/>
-                        <button className={"confirm-button w-24"} onClick={() => sendMessage()}>Send</button>
+                        <button className={"confirm-button w-24"} onClick={() => sendMessage()}>
+                            Send
+                        </button>
                     </div>
                 </div>
             </>
