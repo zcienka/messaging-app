@@ -8,7 +8,6 @@ interface Props {
 }
 
 const MessageStyle = (props: Props) => {
-
     if (props.user === props.message.authorUsername)
         return <div className={"flex justify-end"}>
             <div className={"bg-violet-600 p-6 max-w-sm min-w-16 single-message-current-user mb-2 text-gray-100"}>
@@ -25,7 +24,6 @@ const MessageStyle = (props: Props) => {
                 {moment(props.message.created).fromNow()}
             </div>
         </div>
-
 }
 
 export default MessageStyle

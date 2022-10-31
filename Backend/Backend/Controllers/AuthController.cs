@@ -3,8 +3,10 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Backend.Models;
 using Backend.Requests;
+using Backend.Responses;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -112,9 +114,32 @@ namespace Backend.Controllers
         }
 
         [HttpGet("users")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return await _context.Users.ToListAsync();
+        }
+
+        [HttpGet("user/{username}")]
+        [Authorize]
+        public async Task<ActionResult<Room>> GetUser(string username)
+        {
+            if (_context.Users == null)
+            {
+                return NotFound();
+            }
+
+
+            if (!UserNameExists(username))
+            {
+                return NotFound();
+            }
+
+            var rooms = _context.Rooms
+                .Where(r => r.Usernames.Contains(username))
+                .Select(r => new {r.Usernames, r.Id});
+
+            return Ok(rooms);
         }
 
         public bool UserNameExists(string username)

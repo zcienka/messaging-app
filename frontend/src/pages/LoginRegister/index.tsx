@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from "react"
-import {useLoginUserMutation, useRegisterUserMutation} from "../../services/authApi"
+import {useLoginUserMutation, useRegisterUserMutation} from "../../services/userApi"
 import {useAppDispatch} from "../../app/hooks"
 import {setUser} from "../../features/authSlice"
 import {ReactComponent as ErrorIcon} from "../../imgs/errorIcon.svg"
 import {Tooltip} from "flowbite-react"
 import {useNavigate} from "react-router-dom"
 import {Error} from "../../utils/ErrorMessage"
-import Navbar from "../../components/Navbar";
+import Navbar from "../../components/Navbar"
 
 
 const LoginRegister = () => {
@@ -34,7 +34,6 @@ const Login = () => {
             isError: isLoginError,
         }
     ] = useLoginUserMutation()
-
 
     const login = async () => {
         if (username !== null && password !== null) {
@@ -178,7 +177,7 @@ const Register = () => {
                     <label className={"mb-2"} htmlFor="repeat-password">Repeat password</label>
                     <div className={"flex justify-end items-center relative"}>
                         <input
-                            className={`${repeatPassword !== password && checkPasswords ? "border-red-600" : 'border-slate-200'} w-full mb-2 pr-8`}
+                            className={`${repeatPassword !== password && checkPasswords ? "border-red-600" : "border-slate-200"} w-full mb-2 pr-8`}
                             type="password" id="repeat-password" onChange={(e) => {
                             setRepeatPassword(() => e.target.value)
                         }} onBlur={() => setCheckPasswords(() => true)}/>

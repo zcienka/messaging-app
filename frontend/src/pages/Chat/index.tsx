@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef, useMemo} from "react"
+import React, {useState, useEffect, useCallback, useRef} from "react"
 import {HubConnection, LogLevel} from "@microsoft/signalr"
 import {HubConnectionBuilder} from "@microsoft/signalr"
 import {Message, MessageRequest} from "../../utils/Message"
@@ -25,7 +25,6 @@ const Chat = (props: Props) => {
 
     const inputRef = useRef<HTMLInputElement>(null)
     const navigate = useNavigate()
-
 
     useEffect(() => {
         setRoomId(props.chatId)
@@ -167,6 +166,7 @@ const Chat = (props: Props) => {
 
                 <div className={"flex h-16 w-full border-t-2 border-gray-100"}>
                     <div className={"flex flex-row w-full h-full items-center px-2"}>
+
                         <input className={"w-full mr-2"} ref={inputRef} onChange={(e) => {
                             setMessageRequest({
                                 text: e.target.value,

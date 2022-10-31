@@ -18,20 +18,22 @@ namespace Backend.Hubs
 
         public async Task SendMessage(MessageRequest requestMessage)
         {
+
             Message message = new Message
             {
                 Text = requestMessage.Text,
                 RoomId = requestMessage.RoomId,
                 AuthorUsername = requestMessage.AuthorUsername
             };
+
+            await Clients.Group(requestMessage.RoomId).SendAsync("ReceiveMessage", message);
+
             var room = await _context.Rooms.FirstOrDefaultAsync(p => p.Id == requestMessage.RoomId);
 
             _context.Messages.Add(message);
             room.LastMessage = requestMessage.Text;
 
             await _context.SaveChangesAsync();
-
-            await Clients.Group(requestMessage.RoomId).SendAsync("ReceiveMessage", message);
         }
 
         public async Task JoinRoom(UserConnection userConnection)
