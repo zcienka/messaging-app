@@ -19,7 +19,7 @@ const Navbar = () => {
 }
 
 const Dropdown = () => {
-    return <div className={"right-0 absolute rounded-b-xl border-x-2 border-b-2 border-gray-100 "}>
+    return <div className={"right-0 absolute rounded-b-xl border-x-2 border-b-2 border-gray-100"}>
         <aside className="w-64" aria-label="Sidebar">
             <div className="overflow-y-auto py-4 px-3 bg-white rounded-b-xl">
                 <ul className="space-y-2">

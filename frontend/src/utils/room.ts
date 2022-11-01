@@ -6,3 +6,8 @@ export interface Room {
     usernames: string[],
     lastMessage: string,
 }
+
+export interface UserChatroomsResponse {
+    usernames: string[],
+    id: string,
+}
