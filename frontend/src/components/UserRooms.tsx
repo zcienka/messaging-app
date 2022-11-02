@@ -1,14 +1,13 @@
 import React, {FC, useCallback, useEffect, useRef, useState} from "react"
-import {useCreateRoomMutation, useGetUserRoomsQuery} from "../services/roomApi"
+import {useCreateRoomMutation, useGetUserRoomsQuery, useSearchRoomByUsernameQuery} from "../services/roomApi"
 import {DecodedToken, JwtToken} from "../utils/JwtToken"
-import {Room, UserChatroomsResponse} from "../utils/Room"
+import {Room} from "../utils/Room"
 import Chat from "../pages/Chat"
 import Navbar from "../components/Navbar"
 import {useNavigate} from "react-router-dom"
 import {ReactComponent as MagnifyingGlass} from "../imgs/magnifyingGlass.svg"
 import {ReactComponent as CloseXMark} from "../imgs/closeXMark.svg"
 import {ReactComponent as ErrorIcon} from "../imgs/errorIcon.svg"
-import {useSearchUsernameQuery} from "../services/userApi"
 import jwtDecode from "jwt-decode"
 
 const UserRooms = () => {
@@ -19,7 +18,6 @@ const UserRooms = () => {
     const [chatId, setChatId] = useState<string | null>(null)
     const [username, setUsername] = useState<string>()
     const [currentUserUsername, setCurrentUserUsername] = useState<string>()
-    // const [searchUsername, setSearchUsername] = useState<string>()
     const [checkUsername, setCheckUsername] = useState<boolean>(false)
 
     const navigate = useNavigate()
@@ -41,16 +39,16 @@ const UserRooms = () => {
             data: createRoomData,
             isSuccess: isCreateRoomSuccess,
             isError: isCreateRoomError,
+            error: createRoomError,
         }
     ] = useCreateRoomMutation()
-    // token: jwtToken.token,
-    // )
 
     const {
         data: searchUsernameData,
         isSuccess: isSearchUsernameSuccess,
         isError: isSearchUsernameError,
-    } = useSearchUsernameQuery({
+        error: searchUsernameError,
+    } = useSearchRoomByUsernameQuery({
         username: username,
         token: jwtToken.token,
     }, {skip: !checkUsername})
@@ -104,13 +102,39 @@ const UserRooms = () => {
     }
 
     useEffect(() => {
-        if (isSearchUsernameSuccess) {
-            if (isAlreadyInChatRoom({searchUsernameData, currentUserUsername})) {
-                setChatId(() => getChatId({searchUsernameData, currentUserUsername}))
+        if (isSearchUsernameSuccess && searchUsernameData !== undefined && searchUsernameData.length !== 0) {
+            setChatId(() => searchUsernameData[0].id)
+        } else if (searchUsernameError !== undefined &&
+            "data" in searchUsernameError &&
+            searchUsernameError.status === 401) {
+            navigate("/login")
+        }
+    }, [jwtToken.token, searchUsernameError, navigate, createRoom, currentUserUsername,
+        isSearchUsernameSuccess, searchUsernameData])
+
+    useEffect(() => {
+        const createNewRoom = async () => {
+            await createRoom({users: [username, currentUserUsername], token: jwtToken.token})
+        }
+
+        if (searchUsernameData !== undefined && searchUsernameData.length === 0) {
+            createNewRoom()
+        }
+    }, [username, createRoom, searchUsernameData, currentUserUsername, jwtToken.token])
+
+
+    useEffect(() => {
+        if (isCreateRoomSuccess) {
+            setChatId(() => createRoomData.id)
+        } else {
+            if (createRoomError !== undefined &&
+                "data" in createRoomError &&
+                createRoomError.status === 401) {
+                navigate("/login")
             }
         }
-    }, [currentUserUsername, isSearchUsernameSuccess, searchUsernameData])
-    
+    }, [navigate, createRoomError, createRoomData, isCreateRoomSuccess])
+
     const allRooms = rooms.map((room: Room, index: number) => {
         if (rooms.length === index + 1) {
             return <div key={room.id}
@@ -135,7 +159,9 @@ const UserRooms = () => {
         return <>loading</>
     } else {
         return <>
-            {isSearchUsernameError ? <NoUsersFound isError={isSearchUsernameError}/> : null}
+            {searchUsernameError !== undefined &&
+            // @ts-ignore
+                searchUsernameError.originalStatus === 404 ? <NoUsersFound isError={isSearchUsernameError}/> : null}
             <Navbar/>
             <div className={"flex flex-row h-[calc(100vh_-_8rem)]"}>
                 <div className={"w-96 h-[calc(100vh_-_4rem)] bg-gray-50 border-x-2 border-gray-100 overflow-y-auto"}>
@@ -190,28 +216,5 @@ const NoUsersFound = ({isError}: NoUsersFoundProps) => {
         </div>
     </div>
 }
-
-interface ChatRoomProps {
-    searchUsernameData: any,
-    currentUserUsername: string | undefined,
-}
-
-const isAlreadyInChatRoom = (props: ChatRoomProps) => {
-    const chat = props.searchUsernameData.map((chatRoom: UserChatroomsResponse) => {
-            return chatRoom.usernames.find((username: string) => username === props.currentUserUsername) !== undefined
-        }
-    )
-    return chat.length !== 0
-}
-
-const getChatId = (props: ChatRoomProps) => {
-    const chat = props.searchUsernameData.map((chatRoom: UserChatroomsResponse) => {
-            if(chatRoom.usernames.find((username: string) => username === props.currentUserUsername) !== undefined)
-                return chatRoom.id
-        }
-    )
-    return chat[0]
-}
-
 
 export default UserRooms

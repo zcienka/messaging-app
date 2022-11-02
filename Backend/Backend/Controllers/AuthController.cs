@@ -113,16 +113,9 @@ namespace Backend.Controllers
             });
         }
 
-        [HttpGet("users")]
+        [HttpDelete("user/{username}")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        {
-            return await _context.Users.ToListAsync();
-        }
-
-        [HttpGet("user/{username}")]
-        [Authorize]
-        public async Task<ActionResult<Room>> GetUser(string username)
+        public async Task<IActionResult> DeleteUser(string username)
         {
             if (_context.Users == null)
             {
@@ -130,16 +123,29 @@ namespace Backend.Controllers
             }
 
 
-            if (!UserNameExists(username))
+            var user = await _context.Users.FirstOrDefaultAsync(p => p.UserName == username);
+
+            if (user == null)
             {
                 return NotFound();
             }
 
-            var rooms = _context.Rooms
-                .Where(r => r.Usernames.Contains(username))
-                .Select(r => new {r.Usernames, r.Id});
+            if (user.UserName != username)
+            {
+                return Forbid();
+            }
 
-            return Ok(rooms);
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("users")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        {
+            return await _context.Users.ToListAsync();
         }
 
         public bool UserNameExists(string username)

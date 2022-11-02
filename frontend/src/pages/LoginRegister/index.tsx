@@ -99,7 +99,6 @@ const Login = () => {
 
 const Register = () => {
     const [error, setError] = useState<Error | null>(null)
-
     const [username, setUsername] = useState<string | null>(null)
     const [password, setPassword] = useState<string | null>(null)
     const [repeatPassword, setRepeatPassword] = useState<string | null>(null)
@@ -127,7 +126,7 @@ const Register = () => {
     useEffect(() => {
         if (isRegisterSuccess) {
             dispatch(setUser(registerData))
-            navigate('/', {replace: true})
+            navigate("/", {replace: true})
         }
     }, [dispatch, navigate, registerData, isRegisterSuccess])
 
@@ -140,8 +139,9 @@ const Register = () => {
         <div className={"h-full w-full"}>
             <div className={"mt-16 flex md:justify-center items-center flex-col md:h-full md:mt-0 md:px-0 px-6"}>
                 <h1 className={"text-4xl text-center md:text-5xl font-bold mb-3"}>Create account</h1>
-                <p className={"text-xl text-center mb-8 md:text-xl md:mb-6 text-gray-500"}>Get started with your free
-                    account</p>
+                <p className={"text-xl text-center mb-8 md:text-xl md:mb-6 text-gray-500"}>
+                    Get started with your free account
+                </p>
 
                 <div
                     className={"border-slate-200 flex bg-white w-full h-96 md:w-128 flex-col border-2 rounded-3xl px-8 md:px-12 py-8 text-neutral-800 border-2"}>
@@ -164,9 +164,7 @@ const Register = () => {
                             </Tooltip>
                         </div>
                     </div>
-
                     <label className={"mb-2"} htmlFor="password">Password</label>
-
                     <input
                         className={"mb-2 pr-8"}
                         type="password" id="password"

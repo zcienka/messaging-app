@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Backend.Responses;
-using System.Reflection.Metadata;
-using System.Collections.Generic;
 
 namespace Backend.Controllers
 {
@@ -25,16 +23,16 @@ namespace Backend.Controllers
         public async Task<ActionResult<ApiResult<Room>>> GetRooms([FromQuery] PagingQuery query)
         {
             var username = User?.FindFirst("username").Value;
-        
+
             if (string.IsNullOrEmpty(username) || !int.TryParse(query.Limit, out int limitInt)
                                                || !int.TryParse(query.Offset, out int offsetInt))
             {
                 return NotFound();
             }
-        
+
             IQueryable<Room> rooms = _context.Rooms.AsNoTracking()
                 .Where(r => r.Usernames.Contains(username));
-            
+
             var url = "/room";
 
             return await ApiResult<Room>.CreateAsync(
@@ -52,8 +50,8 @@ namespace Backend.Controllers
         {
             var username = User?.FindFirst("username").Value;
             var room = await _context.Rooms.FindAsync(id);
-        
-        
+
+
             if (room == null ||
                 string.IsNullOrEmpty(username) ||
                 !int.TryParse(query.Limit, out int limitInt) ||
@@ -61,17 +59,17 @@ namespace Backend.Controllers
             {
                 return NotFound();
             }
-        
+
             if (!room.Usernames.Contains(username))
             {
                 return Forbid();
             }
-        
+
             var reversedMessages = _context.Messages.OrderByDescending(o => o.Created);
-        
+
             IQueryable<Message> messages = reversedMessages
                 .Where(r => r.RoomId.Equals(id));
-        
+
             var url = $"/room/{id}";
 
             var pagedMessages = await ApiResult<Message>.CreateAsync(
@@ -80,7 +78,7 @@ namespace Backend.Controllers
                 limitInt,
                 url
             );
-        
+
             RoomResponse roomResponse = new RoomResponse()
             {
                 Id = id,
@@ -88,7 +86,7 @@ namespace Backend.Controllers
                 Messages = pagedMessages,
                 LastMessage = room.LastMessage
             };
-        
+
             return roomResponse;
         }
 
@@ -131,7 +129,7 @@ namespace Backend.Controllers
         // POST: api/Room
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Room>> PostRoom(List<string> usernames)
+        public async Task<IActionResult> PostRoom(List<string> usernames)
         {
             bool usernamesAreUnique = usernames.Distinct().Count() == usernames.Count();
             if (!usernamesAreUnique)
@@ -147,13 +145,25 @@ namespace Backend.Controllers
                 }
             }
 
+
+            foreach (var roomList in _context.Rooms)
+            {
+                var firstNotSecond = roomList.Usernames.Except(usernames).ToList();
+                var secondNotFirst = roomList.Usernames.Except(usernames).ToList();
+
+                if (!firstNotSecond.Any() && !secondNotFirst.Any())
+                {
+                    return StatusCode(409, "Room already exists.");
+                }
+            }
+
+
             Room room = new Room()
             {
                 Usernames = usernames
             };
 
             _context.Rooms.Add(room);
-            // await _context.SaveChangesAsync();
 
             try
             {
@@ -170,7 +180,7 @@ namespace Backend.Controllers
                     throw;
                 }
             }
-            
+
             return CreatedAtAction("GetRoom", new { id = room.Id }, room);
         }
 
@@ -189,6 +199,33 @@ namespace Backend.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("exists/user/{username}")]
+        [Authorize]
+        public async Task<ActionResult<Room>> GetRoomByUsername(string username)
+        {
+            if (_context.Users == null)
+            {
+                return NotFound();
+            }
+
+            if (!UserNameExists(username))
+            {
+                return NotFound("This user does not exist");
+            }
+
+            var currentUser = User?.FindFirst("username").Value;
+            if (currentUser == null)
+            {
+                return Unauthorized();
+            }
+
+            var rooms = _context.Rooms
+            .Where(r => r.Usernames.Contains(username) && r.Usernames.Contains(currentUser))
+            .Select(r => new { r.Usernames, r.Id });
+            
+            return Ok(rooms);
         }
 
         private bool RoomExists(string id)

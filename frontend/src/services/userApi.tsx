@@ -26,12 +26,17 @@ export const userApi = createApi({
                 }
             },
         }),
-        searchUsername: builder.query({
-            query: (body) => ({
-                url: `/user/${body.username}`,
-                method: "GET",
-                headers: {authorization: `Bearer ${body.token}`},
-            }),
+        deleteAccount: builder.mutation({
+            query: (body: {
+                username: string | null
+                token: string | null
+            }) => {
+                return {
+                    url: `/user/${body.username}`,
+                    method: "DELETE",
+                    headers: {authorization: `Bearer ${body.token}`},
+                }
+            },
         }),
     }),
 })
@@ -39,5 +44,5 @@ export const userApi = createApi({
 export const {
     useLoginUserMutation,
     useRegisterUserMutation,
-    useSearchUsernameQuery
+    useDeleteAccountMutation,
 } = userApi

@@ -27,6 +27,14 @@ export const roomApi = createApi({
                 headers: {authorization: `Bearer ${body.token}`},
             }),
         }),
+        searchRoomByUsername: builder.query({
+            query: (body) => ({
+                url: `room/exists/user/${body.username}`,
+                method: "GET",
+                headers: {authorization: `Bearer ${body.token}`},
+                body: body.data,
+            }),
+        }),
     }),
 })
 
@@ -34,5 +42,6 @@ export const {
     useGetRoomQuery,
     useGetUserRoomsQuery,
     useCreateRoomMutation,
+    useSearchRoomByUsernameQuery
 } = roomApi
 
