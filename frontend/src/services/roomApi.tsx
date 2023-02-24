@@ -1,12 +1,13 @@
 import {createApi} from "@reduxjs/toolkit/query/react"
 import baseQuery from "../utils/baseQuery"
+import {Room, RoomRequest} from "../utils/Room";
 
 export const roomApi = createApi({
     reducerPath: "roomApi",
     baseQuery: baseQuery,
     endpoints: (builder) => ({
-        getRoom: builder.query({
-            query: (body) => ({
+        getRoom: builder.query<Room, RoomRequest>({
+            query: (body: RoomRequest) => ({
                 url: body.url,
                 method: "GET",
                 headers: {authorization: `Bearer ${body.token}`},

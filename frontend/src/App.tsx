@@ -1,7 +1,6 @@
 import React from "react"
 import LoginRegister from "./pages/LoginRegister"
 import {Route, BrowserRouter, Routes} from "react-router-dom"
-import Chat from "./pages/Chat"
 import UserRooms from "./components/UserRooms"
 
 function App() {

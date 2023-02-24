@@ -1,13 +1,21 @@
-import {ApiList} from "../models/ApiList"
-import Message from "./Message"
+import Message from "./Message";
 
-export interface Room {
+export type Room = {
     id: string,
     usernames: string[],
     lastMessage: string,
+    messages: AllMessages
 }
 
-export interface UserChatroomsResponse {
-    usernames: string[],
-    id: string,
+export type AllMessages = {
+    count: number,
+    next: string | null,
+    previous: string | null,
+    results: Message[],
+}
+
+export type RoomRequest = {
+    roomId: string,
+    token: string,
+    url: string
 }
