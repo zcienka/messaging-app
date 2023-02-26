@@ -4,16 +4,13 @@ import {useAppDispatch} from "../../app/hooks"
 import {setUser} from "../../features/authSlice"
 import {ReactComponent as ErrorIcon} from "../../imgs/errorIcon.svg"
 import {Tooltip} from "flowbite-react"
-import {useNavigate} from "react-router-dom"
+import {Link, useNavigate} from "react-router-dom"
 import {Error} from "../../utils/ErrorMessage"
-import Navbar from "../../components/Navbar"
-
 
 const LoginRegister = () => {
     return (
         <>
-            <Navbar/>
-            <div className={"flex h-[calc(100vh_-_4rem)] w-screen bg-violet-50"}>
+            <div className={"flex h-screen w-screen bg-gray-50"}>
                 {window.location.pathname === "/login" ? <Login/> : <Register/>}
             </div>
         </>
@@ -57,7 +54,7 @@ const Login = () => {
                 </p>
 
                 <div
-                    className={"border-slate-200 flex bg-white w-full h-96 md:w-128 flex-col border-2 rounded-3xl px-8 md:px-12 py-12 text-neutral-800 border-2"}>
+                    className={"border-slate-200 flex bg-white w-full h-96 md:w-128 flex-col border rounded-3xl px-8 md:px-12 py-12 text-neutral-800 border"}>
                     <label className={"mb-2"} htmlFor="username">Username</label>
 
                     <div className={"flex justify-end items-center relative"}>
@@ -69,7 +66,7 @@ const Login = () => {
                         <div className={`${isLoginError ? "visible" : "invisible"} 
                             absolute w-8 h-8 text-red-600 top-2`}>
                             <Tooltip
-                                content="x"
+                                content="Invalid username or password"
                                 trigger="hover"
                                 id="tooltip-top"
                             >
@@ -91,6 +88,9 @@ const Login = () => {
                             <button className={"w-full"} onClick={login}>Login</button>
                         </div>
                     </div>
+                    <p className={"pt-2 text-slate-600 text-sm"}>
+                        Don't have an account? <span className={"text-violet-700"}><Link to={"/register"}>Register.</Link></span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -144,7 +144,7 @@ const Register = () => {
                 </p>
 
                 <div
-                    className={"border-slate-200 flex bg-white w-full h-96 md:w-128 flex-col border-2 rounded-3xl px-8 md:px-12 py-8 text-neutral-800 border-2"}>
+                    className={"border-slate-200 flex bg-white w-full h-96 md:w-128 flex-col border rounded-3xl px-8 md:px-12 py-8 text-neutral-800 border"}>
                     <label className={"mb-2"} htmlFor="username">Username</label>
 
                     <div className={"flex justify-end items-center relative"}>
@@ -193,8 +193,13 @@ const Register = () => {
 
                     <div className={"flex h-full"}>
                         <div className={"flex items-end w-full"}>
-                            <button className={"w-full"} onClick={register}>Register</button>
+                            <button className={"w-full"} onClick={register}>Register </button>
                         </div>
+                    </div>
+                    <div className={" flex justify-end w-full"}>
+                        <p className={"pt-2 text-slate-600 text-sm"}>
+                            Already have an account? <span className={"text-violet-700"}><Link to={"/login"}>Log in.</Link></span>
+                        </p>
                     </div>
                 </div>
             </div>

@@ -91,7 +91,7 @@ const Chat = (props: Props) => {
             navigate("/login")
         }
     }, [isGetRoomError, navigate, isGetRoomSuccess, jwtToken.token])
-    console.log({user})
+
     useEffect(() => {
         if (isGetRoomSuccess && !isGetRoomFetching && getRoomData.messages !== undefined) {
             setMessages((prevMessage: any) =>

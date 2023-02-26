@@ -1,17 +1,15 @@
 import React from "react"
 import LoginRegister from "./pages/LoginRegister"
 import {Route, BrowserRouter, Routes} from "react-router-dom"
-import UserRooms from "./components/UserRooms"
+import Navbar from "./components/Navbar";
 
 function App() {
-
     return (
         <BrowserRouter basename={process.env.PUBLIC_URL}>
             <Routes>
-                <Route path={"/"} element={<UserRooms/>}/>
+                <Route path={"/"} element={<Navbar/>}/>
                 <Route path={"/login"} element={<LoginRegister/>}/>
                 <Route path={"/register"} element={<LoginRegister/>}/>
-                {/*<Route path={"/chat/:id"} element={<Chat/>}/>*/}
             </Routes>
         </BrowserRouter>
     )
