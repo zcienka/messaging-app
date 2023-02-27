@@ -5,14 +5,14 @@ import {logout} from "../features/authSlice"
 import {useAppDispatch} from "../app/hooks"
 import {useDeleteAccountMutation} from "../services/userApi"
 import {DecodedToken, JwtToken} from "../utils/JwtToken"
-import jwtDecode from "jwt-decode";
-import {useNavigate} from "react-router-dom";
-import {ReactComponent as MagnifyingGlass} from "../imgs/magnifyingGlass.svg";
-import Chat from "../pages/Chat";
-import {Room} from "../utils/Room";
-import {useCreateRoomMutation, useGetUserRoomsQuery, useSearchRoomByUsernameQuery} from "../services/roomApi";
-import {ReactComponent as ErrorIcon} from "../imgs/errorIcon.svg";
-import {ReactComponent as CloseXMark} from "../imgs/closeXMark.svg";
+import jwtDecode from "jwt-decode"
+import {useNavigate} from "react-router-dom"
+import {ReactComponent as MagnifyingGlass} from "../imgs/magnifyingGlass.svg"
+import Chat from "../pages/Chat"
+import {Room, RoomRequest} from "../utils/Room"
+import {useCreateRoomMutation, useGetUserRoomsQuery, useSearchRoomByUsernameQuery} from "../services/roomApi"
+import {ReactComponent as ErrorIcon} from "../imgs/errorIcon.svg"
+import {ReactComponent as CloseXMark} from "../imgs/closeXMark.svg"
 import Loading from "./Loading"
 
 const Navbar = () => {
@@ -40,7 +40,7 @@ const Navbar = () => {
         {
             token: jwtToken.token,
             url: url === undefined ? "/room" : url
-        })
+        } as RoomRequest)
 
     const [
         createRoom,
@@ -55,7 +55,7 @@ const Navbar = () => {
     const observer = useRef<IntersectionObserver | null>(null)
 
     const lastRoomRef = useCallback((node: any) => {
-        if (getUserRoomsData.next) {
+        if (getUserRoomsData && getUserRoomsData.next) {
             setHasMore(true)
         } else {
             setHasMore(false)
@@ -65,7 +65,7 @@ const Navbar = () => {
             observer.current.disconnect()
         }
         observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
+            if (getUserRoomsData && getUserRoomsData.next && entries[0].isIntersecting && hasMore) {
                 setUrl(getUserRoomsData.next)
             } else {
                 setUrl(undefined)
@@ -74,7 +74,7 @@ const Navbar = () => {
         if (node) {
             observer.current.observe(node)
         }
-    }, [getUserRoomsData?.next, hasMore])
+    }, [getUserRoomsData, hasMore])
 
     const {
         data: searchUsernameData,
@@ -99,6 +99,7 @@ const Navbar = () => {
         if (isGetUserRoomsSuccess && !isGetUserRoomsFetching) {
             setRooms((prevRooms: any) =>
                 Array.from(new Map([...prevRooms, ...getUserRoomsData.results].map((x: any) => [x["id"], x])).values()))
+
         }
     }, [getUserRoomsData, isGetUserRoomsSuccess, isGetUserRoomsFetching])
 
@@ -151,38 +152,67 @@ const Navbar = () => {
             setCheckUsername(() => false)
         }
     }
-    const allRooms = rooms.map((room: Room, index: number) => {
-        if (rooms.length === index + 1) {
-            return <div key={room.id}
-                        className={"mt-2 mx-2 rounded-xl p-4 bg-gray-200 cursor-pointer min-w-2xl"}
-                        onClick={(e) => {
-                            setChatId(() => room.id)
-                            setShowRooms(() => false)
-                        }}>
-                <span ref={lastRoomRef}>
-                    <p className={"font-bold text-ellipsis max-h-m truncate"}>
-                        {room.lastMessage}
-                    </p>
-                </span>
-            </div>
-        } else {
-            return <div key={room.id}
-                        className={"mt-2 mx-2 rounded-xl p-4 bg-gray-200 cursor-pointer"}
-                        onClick={(e) => {
-                            setChatId(() => room.id)
-                            setShowRooms(() => false)
-                        }}>
-                <div className={"text-ellipsis max-h-m truncate"}>
-                    <p className={"font-bold text-ellipsis max-h-m truncate"}>
-                        {room.lastMessage}
-                    </p>
-                </div>
-            </div>
-        }
-    })
+
+
     if (isGetUserRoomsFetching && rooms.length === 0) {
         return <Loading/>
     } else {
+        const allRooms = rooms.map((room: Room, index: number) => {
+            const receivers = room.usernames.filter((username: string) => username !== currentUserUsername)
+            const usernames = receivers.map((username: string, index: number) => {
+                if (index + 1 === receivers.length) {
+                    return <div className={"flex-col w-fit"}>
+                        {username}
+                    </div>
+                } else {
+                    return <div className={"flex-col w-fit"}>
+                        {username},
+                    </div>
+                }
+            })
+
+            if (rooms.length === index + 1) {
+                return <div key={room.id}
+                            className={" mt-2 mx-2 rounded-xl p-4 bg-gray-200 cursor-pointer min-w-2xl"}
+                            onClick={(e) => {
+                                setChatId(() => room.id)
+                                setShowRooms(() => false)
+                                setShowDropdown(() => false)
+
+                            }}>
+                    <div ref={lastRoomRef}>
+                        <div className={"flex"}>
+                            <div className={"flex-col font-bold text-ellipsis w-1/2 max-w-1/2 truncate"}>
+                                {usernames}
+                            </div>
+                            <div className={"flex w-1/2 justify-end"}>
+                                <div
+                                    className={"flex-col text-ellipsis max-w-1/2 truncate"}>{room.lastMessage}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            } else {
+                return <div key={room.id}
+                            className={"mt-2 mx-2 rounded-xl p-4 bg-gray-200 cursor-pointer"}
+                            onClick={(e) => {
+                                setChatId(() => room.id)
+                                setShowRooms(() => false)
+                                setShowDropdown(() => false)
+                            }}>
+                    <div className={"flex"}>
+                        <div className={"flex-col font-bold text-ellipsis w-1/2 max-w-1/2 truncate"}>
+                            {usernames}
+                        </div>
+                        <div className={"flex w-1/2 justify-end"}>
+                            <div
+                                className={"flex-col text-ellipsis max-w-1/2 truncate"}>{room.lastMessage}</div>
+                        </div>
+                    </div>
+                </div>
+            }
+        })
+
         return <div>
             {searchUsernameError !== undefined &&
             // @ts-ignore
@@ -202,11 +232,12 @@ const Navbar = () => {
                     </div>
                 </div>
             </div>
-            <div className={`${showDropdown ? "flex" : "hidden"}`}>
+            <div className={`${showDropdown ? "flex" : "invisible"}`}>
                 <Dropdown user={user} accessToken={jwtToken.token}/>
             </div>
-            <div className={"flex  flex-row h-[calc(100vh_-_8.1rem)]"}>
-                <div className={`${showRooms ? "w-full md:w-fit visible md:inline-block" : "md:visible invisible absolute md:static"}`}>
+            <div className={"flex flex-row h-[calc(100vh_-_8.1rem)]"}>
+                <div
+                    className={`${showRooms ? "w-full md:w-fit visible md:inline-block" : "md:visible md:flex hidden invisible absolute md:static"}`}>
                     <div
                         className={"w-full md:w-96 h-[calc(100vh_-_4.1rem)] bg-gray-50 border-x-2 border-gray-100 overflow-y-auto"}>
                         <div className={"flex justify-center w-full p-2"}>
@@ -267,7 +298,7 @@ const Dropdown = (props: DropdownProps) => {
                         <div
                             className="flex items-center p-2 text-base font-normal rounded-lg hover:bg-gray-100 cursor-pointer"
                             onClick={() => {
-                                dispatch(logout());
+                                dispatch(logout())
                                 navigate("/login")
                             }}>
                             <span className="ml-3">Log out</span>

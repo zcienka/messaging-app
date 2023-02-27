@@ -5,9 +5,9 @@ export type ApiList<TypeGeneric> = {
     results: TypeGeneric[]
 }
 
-export const initialApiList: ApiList<any> = {
-    count: 0,
-    next: null,
-    previous: null,
-    results: [],
-}
+// export const initialApiList: ApiList<any> = {
+//     count: 0,
+//     next: null,
+//     previous: null,
+//     results: [],
+// }

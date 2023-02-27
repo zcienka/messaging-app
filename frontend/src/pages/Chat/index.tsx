@@ -7,8 +7,9 @@ import {useGetRoomQuery} from "../../services/roomApi"
 import jwtDecode from "jwt-decode"
 import {useNavigate} from "react-router-dom"
 import SingleMessage from "../../components/SingleMessage"
-import {RoomRequest} from "../../utils/Room";
+import {RoomRequest} from "../../utils/Room"
 import {v4 as uuidv4} from "uuid"
+import Loading from "../../components/Loading";
 
 interface Props {
     chatId: string,
@@ -157,7 +158,7 @@ const Chat = (props: Props) => {
     }, [lastMessageRef, messages, user])
 
     if (roomId === undefined || users === undefined)
-        return (<>loading...</>)
+        return (<Loading/>)
     else {
         const allUsers = users.map((username: string, count: number) => {
             if (users.length > 2 && count === users.length - 1) {

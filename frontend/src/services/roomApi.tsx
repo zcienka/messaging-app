@@ -1,6 +1,8 @@
 import {createApi} from "@reduxjs/toolkit/query/react"
 import baseQuery from "../utils/baseQuery"
 import {Room, RoomRequest} from "../utils/Room";
+import {ApiList} from "../models/ApiList";
+import Message from "../utils/Message";
 
 export const roomApi = createApi({
     reducerPath: "roomApi",
@@ -21,8 +23,8 @@ export const roomApi = createApi({
                 headers: {authorization: `Bearer ${body.token}`},
             }),
         }),
-        getUserRooms: builder.query({
-            query: (body) => ({
+        getUserRooms: builder.query<ApiList<Message>, RoomRequest>({
+            query: (body: RoomRequest) => ({
                 url: body.url,
                 method: "GET",
                 headers: {authorization: `Bearer ${body.token}`},
