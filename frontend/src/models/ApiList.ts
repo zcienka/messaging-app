@@ -4,10 +4,3 @@ export type ApiList<TypeGeneric> = {
     previous: string | null
     results: TypeGeneric[]
 }
-
-// export const initialApiList: ApiList<any> = {
-//     count: 0,
-//     next: null,
-//     previous: null,
-//     results: [],
-// }

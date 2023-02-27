@@ -6,6 +6,7 @@ import {ReactComponent as ErrorIcon} from "../../imgs/errorIcon.svg"
 import {Tooltip} from "flowbite-react"
 import {Link, useNavigate} from "react-router-dom"
 import {Error} from "../../utils/ErrorMessage"
+import {AuthRequest} from "../../utils/User";
 
 const LoginRegister = () => {
     return (
@@ -39,7 +40,7 @@ const Login = () => {
     }
 
     useEffect(() => {
-        if (isLoginSuccess) {
+        if (isLoginSuccess && loginData !== undefined) {
             dispatch(setUser(loginData))
             navigate('/', {replace: true})
         }
@@ -119,12 +120,12 @@ const Register = () => {
 
     const register = async () => {
         if (username !== null && password !== null && repeatPassword === password) {
-            await registerUser({username, password})
+            await registerUser({username, password} as AuthRequest)
         }
     }
 
     useEffect(() => {
-        if (isRegisterSuccess) {
+        if (isRegisterSuccess && registerData !== undefined) {
             dispatch(setUser(registerData))
             navigate("/", {replace: true})
         }
@@ -156,7 +157,7 @@ const Register = () => {
                         <div className={`${isRegisterError ? "visible" : "invisible"} 
                             absolute w-8 h-8 text-red-600`}>
                             <Tooltip
-                                content="Username already exist"
+                                content="Username already exists"
                                 trigger="hover"
                                 id="tooltip-top"
                             >

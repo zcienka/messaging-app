@@ -1,11 +1,12 @@
 import {createApi} from "@reduxjs/toolkit/query/react"
 import baseQuery from "../utils/baseQuery"
+import {AuthRequest, AuthResponse, DeleteAccountRequest} from "../utils/User"
 
 export const userApi = createApi({
     reducerPath: "userApi",
     baseQuery: baseQuery,
     endpoints: (builder) => ({
-        loginUser: builder.mutation({
+        loginUser: builder.mutation<AuthResponse, AuthRequest>({
             query: (body) => {
                 return {
                     url: "/login",
@@ -14,11 +15,8 @@ export const userApi = createApi({
                 }
             },
         }),
-        registerUser: builder.mutation({
-            query: (body: {
-                username: string
-                password: string
-            }) => {
+        registerUser: builder.mutation<AuthResponse, AuthRequest>({
+            query: (body) => {
                 return {
                     url: "/register",
                     method: "POST",
@@ -26,11 +24,8 @@ export const userApi = createApi({
                 }
             },
         }),
-        deleteAccount: builder.mutation({
-            query: (body: {
-                username: string | null
-                token: string | null
-            }) => {
+        deleteAccount: builder.mutation<DeleteAccountRequest, any>({
+            query: (body) => {
                 return {
                     url: `/user/${body.username}`,
                     method: "DELETE",

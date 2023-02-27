@@ -1,8 +1,9 @@
 import {createApi} from "@reduxjs/toolkit/query/react"
 import baseQuery from "../utils/baseQuery"
-import {Room, RoomRequest} from "../utils/Room";
+import {CreateRoomRequest, Room, RoomRequest} from "../utils/Room";
 import {ApiList} from "../models/ApiList";
 import Message from "../utils/Message";
+import {CreateRoomResponse, UserRequest, UserRooms} from "../utils/User";
 
 export const roomApi = createApi({
     reducerPath: "roomApi",
@@ -15,7 +16,7 @@ export const roomApi = createApi({
                 headers: {authorization: `Bearer ${body.token}`},
             }),
         }),
-        createRoom: builder.mutation({
+        createRoom: builder.mutation<CreateRoomResponse, CreateRoomRequest>({
             query: (body) => ({
                 url: "/room",
                 method: "POST",
@@ -30,12 +31,11 @@ export const roomApi = createApi({
                 headers: {authorization: `Bearer ${body.token}`},
             }),
         }),
-        searchRoomByUsername: builder.query({
+        searchRoomByUsername: builder.query<UserRooms[], UserRequest>({
             query: (body) => ({
                 url: `room/exists/user/${body.username}`,
                 method: "GET",
                 headers: {authorization: `Bearer ${body.token}`},
-                body: body.data,
             }),
         }),
     }),

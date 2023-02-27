@@ -17,6 +17,11 @@ export type AllMessages = {
 export type RoomRequest = {
     roomId: string,
     token: string,
-    url: string
+    url: string,
+}
+
+export type CreateRoomRequest = {
+    token: string,
+    users: string[],
 }
 

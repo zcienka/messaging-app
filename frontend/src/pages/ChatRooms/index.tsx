@@ -1,21 +1,23 @@
 import React, {useCallback, useEffect, useRef, useState} from "react"
-import {ReactComponent as BurgerNav} from "../imgs/burgerNavIcon.svg"
-import {ReactComponent as SettingsIcon} from "../imgs/settingsIcon.svg"
-import {logout} from "../features/authSlice"
-import {useAppDispatch} from "../app/hooks"
-import {useDeleteAccountMutation} from "../services/userApi"
-import {DecodedToken, JwtToken} from "../utils/JwtToken"
+import {ReactComponent as BurgerNav} from "../../imgs/burgerNavIcon.svg"
+import {ReactComponent as SettingsIcon} from "../../imgs/settingsIcon.svg"
+import {logout} from "../../features/authSlice"
+import {useAppDispatch} from "../../app/hooks"
+import {useDeleteAccountMutation} from "../../services/userApi"
+import {DecodedToken, JwtToken} from "../../utils/JwtToken"
 import jwtDecode from "jwt-decode"
 import {useNavigate} from "react-router-dom"
-import {ReactComponent as MagnifyingGlass} from "../imgs/magnifyingGlass.svg"
-import Chat from "../pages/Chat"
-import {Room, RoomRequest} from "../utils/Room"
-import {useCreateRoomMutation, useGetUserRoomsQuery, useSearchRoomByUsernameQuery} from "../services/roomApi"
-import {ReactComponent as ErrorIcon} from "../imgs/errorIcon.svg"
-import {ReactComponent as CloseXMark} from "../imgs/closeXMark.svg"
-import Loading from "./Loading"
+import {ReactComponent as MagnifyingGlass} from "../../imgs/magnifyingGlass.svg"
+import Chat from "../Chat"
+import {CreateRoomRequest, Room, RoomRequest} from "../../utils/Room"
+import {useCreateRoomMutation, useGetUserRoomsQuery, useSearchRoomByUsernameQuery} from "../../services/roomApi"
+import {ReactComponent as ErrorIcon} from "../../imgs/errorIcon.svg"
+import {ReactComponent as CloseXMark} from "../../imgs/closeXMark.svg"
+import Loading from "../../components/Loading"
+import {v4 as uuidv4} from "uuid"
+import {UserRequest} from "../../utils/User";
 
-const Navbar = () => {
+const ChatRooms = () => {
     const [showDropdown, setShowDropdown] = useState(false)
     const [showRooms, setShowRooms] = useState(false)
     const [user, setUser] = useState<string | null>(null)
@@ -84,7 +86,7 @@ const Navbar = () => {
     } = useSearchRoomByUsernameQuery({
         username: username,
         token: jwtToken.token,
-    }, {skip: !checkUsername})
+    } as UserRequest, {skip: !checkUsername})
 
     useEffect(() => {
         if (localStorage.getItem("user") === null || isGetUserRoomsError) {
@@ -116,18 +118,20 @@ const Navbar = () => {
         isSearchUsernameSuccess, searchUsernameData])
 
     useEffect(() => {
-        const createNewRoom = async () => {
-            await createRoom({users: [username, currentUserUsername], token: jwtToken.token})
-        }
+        if (username !== undefined && currentUserUsername !== undefined && jwtToken.token !== null) {
+            const createNewRoom = async () => {
+                await createRoom({users: [username, currentUserUsername], token: jwtToken.token} as CreateRoomRequest)
+            }
 
-        if (searchUsernameData !== undefined && searchUsernameData.length === 0) {
-            createNewRoom()
+            if (searchUsernameData !== undefined && searchUsernameData.length === 0) {
+                createNewRoom()
+            }
         }
     }, [username, createRoom, searchUsernameData, currentUserUsername, jwtToken.token])
 
 
     useEffect(() => {
-        if (isCreateRoomSuccess) {
+        if (isCreateRoomSuccess && createRoomData !== undefined) {
             setChatId(() => createRoomData.id)
         } else {
             if (createRoomError !== undefined &&
@@ -153,7 +157,6 @@ const Navbar = () => {
         }
     }
 
-
     if (isGetUserRoomsFetching && rooms.length === 0) {
         return <Loading/>
     } else {
@@ -161,11 +164,11 @@ const Navbar = () => {
             const receivers = room.usernames.filter((username: string) => username !== currentUserUsername)
             const usernames = receivers.map((username: string, index: number) => {
                 if (index + 1 === receivers.length) {
-                    return <div className={"flex-col w-fit"}>
+                    return <div className={"flex-col w-fit"} key={uuidv4()}>
                         {username}
                     </div>
                 } else {
-                    return <div className={"flex-col w-fit"}>
+                    return <div className={"flex-col w-fit"} key={uuidv4()}>
                         {username},
                     </div>
                 }
@@ -347,4 +350,4 @@ const NoUsersFound = ({isError}: NoUsersFoundProps) => {
     </div>
 }
 
-export default Navbar
+export default ChatRooms
