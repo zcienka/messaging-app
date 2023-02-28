@@ -1,5 +1,5 @@
 ## Messaging app
----
+
 An app that allows real time communication using websockets on all devices.
 
 The users can:
@@ -12,7 +12,7 @@ Authorization was made using JWT and authentication is custom. I used paging and
 infinite scrolling design to load messages.
 
 ## Technologies
----
+
 - React
 - ASP .NET Core 6.0
 - Tailwind CSS
@@ -26,7 +26,7 @@ infinite scrolling design to load messages.
 
 
 ## Installation and Setup Instructions
----
+
 ### React
 Clone down this repository. You will need `node` and `npm` installed globally on your machine.
 
